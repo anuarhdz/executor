@@ -58,11 +58,31 @@ Access variables until configuration is complete. In the Zero Trust dashboard:
 
 Now visiting the Worker prompts an Access login; the Worker validates the issued
 JWT on every request. Unauthenticated requests return 401. MCP clients present
-an Access JWT or `Cf-Access-Client-Id`/`-Secret` service-token headers.
+an Access JWT, `Cf-Access-Client-Id`/`-Secret` service-token headers, or an
+OAuth token from Access Managed OAuth (below).
 
 The Access values are live Worker variables, not values in `wrangler.jsonc`.
 Wrangler's `keep_vars` option preserves them during later code deploys. Run the
 command above again whenever you need to change them.
+
+### MCP clients — OAuth via Access Managed OAuth
+
+To let MCP clients sign in with OAuth (Claude Code, claude.ai connectors,
+ChatGPT, …) instead of service-token headers, turn on
+[Managed OAuth](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/managed-oauth/)
+for the Access application: **Edit → Advanced settings → Managed OAuth**.
+
+- Enable **Allow localhost clients** / **Allow loopback clients** for local
+  clients, and add the redirect URIs of any hosted clients under **Allowed
+  redirect URIs**.
+- Prefer a short access token lifetime (e.g. 15 minutes) with a longer grant
+  session (e.g. 2 weeks); Access re-evaluates its policies on every refresh.
+
+No Worker change is needed. Access then answers unauthenticated `/mcp` requests
+with a `401` challenge, serves the OAuth discovery documents and dynamic client
+registration itself, and forwards the same `Cf-Access-Jwt-Assertion` the Worker
+already validates. OAuth sessions carry the user's email, so `ADMIN_EMAILS`
+applies to them; service tokens carry no email and always act as members.
 
 ## Local development
 

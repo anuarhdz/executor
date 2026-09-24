@@ -60,13 +60,14 @@ const protectedResourceMetadataResponse = (request: Request): Response => {
 // MCP auth seam reuses the SAME `makeAccessVerifier` the IdentityProvider uses:
 // validate the JWT, map claims onto the neutral `Principal`, done.
 //
-// There is no MCP OAuth here. Auth is Access's browser/service-token flow, not
-// the MCP `/authorize`+`/token` dance — so `discoveryRoutes` is empty and the
-// 401 challenge points at a nominal protected-resource URL only to satisfy
-// clients that probe for it. An external MCP client authenticates by presenting
-// an Access JWT (or `Cf-Access-Client-Id`/`-Secret` service-token headers, which
-// Access converts to one). When MCP OAuth-over-Access is needed, add the
-// discovery docs + a token endpoint here behind this same seam.
+// The Worker implements no MCP OAuth itself. The discovery routes below serve a
+// nominal protected-resource document (no authorization servers) only to
+// satisfy clients that probe for it. An external MCP client authenticates by
+// presenting an Access JWT (or `Cf-Access-Client-Id`/`-Secret` service-token
+// headers, which Access converts to one). For MCP OAuth, enable Access Managed
+// OAuth on the application: Access then answers the 401 challenge, serves the
+// discovery docs + token endpoint in front of the Worker, and still forwards a
+// `Cf-Access-Jwt-Assertion`, so nothing changes here.
 // ---------------------------------------------------------------------------
 
 export const cloudflareAccessMcpAuth = (config: CloudflareConfig): Layer.Layer<McpAuthProvider> => {
