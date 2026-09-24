@@ -66,7 +66,33 @@ export const cloudflareAccountProvider = (
     listOrgApiKeys: () => Effect.succeed({ apiKeys: [] }),
     createOrgApiKey: () => forbiddenWrite,
     revokeOrgApiKey: () => forbiddenWrite,
-    listMembers: () => Effect.succeed({ members: [] }),
+    // Access owns the roster, so the only member the app can know is the
+    // caller. The shell reads the admin role off the `isCurrentUser` row, so
+    // an empty list would hide admin-only UI from Access-listed admins.
+    listMembers: (headers) =>
+      principalFrom(headers).pipe(
+        Effect.map((principal) => {
+          const members = principal
+            ? [
+                {
+                  id: principal.accountId,
+                  userId: principal.accountId,
+                  email: principal.email || null,
+                  name: principal.name,
+                  avatarUrl: principal.avatarUrl,
+                  role: principal.orgRole ?? "member",
+                  status: "active",
+                  lastActiveAt: null,
+                  isCurrentUser: true,
+                },
+              ]
+            : [];
+          return {
+            members,
+            seats: { used: members.length, granted: members.length, unlimited: true },
+          };
+        }),
+      ),
     listRoles: () => Effect.succeed({ roles: [] }),
     inviteMember: () => forbiddenWrite,
     removeMember: () => forbiddenWrite,
