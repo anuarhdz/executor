@@ -7,6 +7,10 @@
   // Access configuration is set per installation after the first deploy.
   // Preserve those live bindings when this source config does not declare them.
   "keep_vars": true,
+  // Serve only on the Access-protected custom domain.
+  "routes": [{ "pattern": "executor.anuar.dev", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": false,
   "observability": { "enabled": true },
   // The web UI (Workers Static Assets) — the shared multiplayer SPA built by
   // `vite build` into ./dist. `single-page-application` serves index.html for
@@ -29,7 +33,7 @@
     {
       "binding": "DB",
       "database_name": "executor",
-      "database_id": "ae748ca1-032c-4427-a1a0-fe39db77d1a9",
+      "database_id": "13b1cfe9-a6a9-4215-a466-5a99419c2b78",
     },
   ],
   // Plugin blob seam backend: multi-MB values (resolved OpenAPI specs,
